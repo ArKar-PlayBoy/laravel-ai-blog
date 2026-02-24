@@ -15,8 +15,8 @@
             <form method="POST" action="{{ route('posts.like', $post) }}" class="mt-3 inline-block">
                 @csrf
                 <button type="submit" class="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition
-                    {{ $post->isLikedByAuthUser ?? false ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500' }}">
-                    <svg class="w-5 h-5" fill="{{ ($post->isLikedByAuthUser ?? false) ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    {{ $post->is_liked_by_auth_user ?? false ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500' }}">
+                    <svg class="w-5 h-5" fill="{{ ($post->is_liked_by_auth_user ?? false) ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                     </svg>
                     <span>{{ $post->liked_by_count ?? 0 }}</span>
