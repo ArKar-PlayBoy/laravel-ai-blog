@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +30,15 @@ class BlogSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
+        // Assign roles to users
+        $adminRole = Role::where('name', 'admin')->first();
+        $editorRole = Role::where('name', 'editor')->first();
+        $moderatorRole = Role::where('name', 'moderator')->first();
+        $superAdminRole = Role::where('name', 'super_admin')->first();
+
+        $alice->roles()->attach($superAdminRole->id);
+        $bob->roles()->attach($adminRole->id);
+
         $users = [$alice, $bob];
 
         // 5 pre-defined categories
@@ -43,7 +53,7 @@ class BlogSeeder extends Seeder
             $posts[] = Post::factory()->create([
                 'user_id' => fake()->randomElement($users)->id,
                 'category_id' => fake()->randomElement($categories)->id,
-                'featured_image' => 'https://picsum.photos/800/600?random=' . ($i + 1000),
+                'featured_image' => 'https://picsum.photos/800/600?random='.($i + 1000),
             ]);
         }
 

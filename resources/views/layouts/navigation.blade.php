@@ -21,6 +21,15 @@
                     <x-nav-link :href="route('posts.create')" :active="request()->routeIs('posts.create')">
                         {{ __('New Post') }}
                     </x-nav-link>
+                    @php
+                        $adminRoles = ['super_admin', 'admin', 'moderator', 'editor'];
+                        $hasAdminRole = Auth::user()->roles()->whereIn('name', $adminRoles)->exists();
+                    @endphp
+                    @if($hasAdminRole)
+                    <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                        {{ __('Admin') }}
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -84,6 +93,11 @@
             <x-responsive-nav-link :href="route('posts.create')" :active="request()->routeIs('posts.create')">
                 {{ __('New Post') }}
             </x-responsive-nav-link>
+            @if($hasAdminRole)
+            <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                {{ __('Admin') }}
+            </x-responsive-nav-link>
+            @endif
             </div>
             <x-dark-mode-toggle />
         </div>

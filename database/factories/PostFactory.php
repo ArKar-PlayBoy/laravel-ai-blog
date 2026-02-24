@@ -25,7 +25,7 @@ class PostFactory extends Factory
             'title' => fake()->sentence(),
             'body' => fake()->paragraphs(3, true),
             'category_id' => Category::factory(),
-            'featured_image' => 'https://picsum.photos/800/600?random=' . fake()->unique()->numberBetween(1, 9999),
+            'featured_image' => 'https://picsum.photos/800/600?random='.fake()->unique()->numberBetween(1, 9999),
             'user_id' => User::factory(),
         ];
     }

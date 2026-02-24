@@ -12,48 +12,96 @@ class Post extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'title',
         'body',
         'category_id',
         'featured_image',
         'user_id',
+        'status',
     ];
 
-    /**
-     * Get the category that owns the post.
-     */
+    protected $casts = [
+        'status' => 'string',
+    ];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Get the user that owns the post.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the comments for the post.
-     */
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
 
-    /**
-     * Get the users who liked the post.
-     */
     public function likedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'post_likes')->withTimestamps();
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    public function scopeArchived($query)
+    {
+        return $query->where('status', 'archived');
+    }
+
+    public function scopeWithAuthor($query)
+    {
+        return $query->with('user');
+    }
+
+    public function scopeWithCategory($query)
+    {
+        return $query->with('category');
+    }
+
+    public function scopeWithRelations($query)
+    {
+        return $query->with(['user', 'category']);
+    }
+
+    public function scopeWithCounts($query)
+    {
+        return $query->withCount(['likedBy', 'comments']);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->status === 'archived';
     }
 }

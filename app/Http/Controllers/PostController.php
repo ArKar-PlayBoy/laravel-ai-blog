@@ -12,13 +12,18 @@ use Illuminate\View\View;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of posts.
-     */
     public function index(Request $request): View
     {
+        $userId = auth()->id();
+        
         $query = Post::with(['user', 'category'])
             ->withCount(['likedBy', 'comments'])
+            ->when($userId, function ($q) use ($userId) {
+                $q->withExists(['likedBy as is_liked_by_auth_user' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                }]);
+            })
+            ->published()
             ->latest();
 
         if ($request->filled('category')) {
@@ -26,68 +31,58 @@ class PostController extends Controller
         }
 
         $posts = $query->paginate(12);
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::getCached();
 
-        $likedPostIds = auth()->check()
-            ? auth()->user()->likedPosts()->whereIn('post_id', $posts->pluck('id'))->pluck('post_id')->toArray()
-            : [];
-
-        return view('posts.index', compact('posts', 'categories', 'likedPostIds'));
+        return view('posts.index', compact('posts', 'categories'));
     }
 
-    /**
-     * Show the form for creating a new post.
-     */
     public function create(): View|RedirectResponse
     {
         $this->authorize('create', Post::class);
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::getCached();
 
         return view('posts.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created post.
-     */
     public function store(StorePostRequest $request): RedirectResponse
     {
         Post::create([
             ...$request->validated(),
             'user_id' => $request->user()->id,
+            'status' => 'pending',
         ]);
 
-        return redirect()->route('posts.index')->with('status', 'Post created successfully.');
+        return redirect()->route('posts.index')->with('status', 'Post submitted successfully. It will be visible after approval.');
     }
 
-    /**
-     * Display the specified post.
-     */
     public function show(Post $post): View
     {
+        if ($post->status !== 'published' && auth()->id() !== $post->user_id) {
+            abort(404);
+        }
+
+        $userId = auth()->id();
+        
         $post->load(['user', 'category', 'comments.user'])
             ->loadCount('likedBy');
 
-        $post->isLikedByAuthUser = auth()->check()
-            ? $post->likedBy()->where('user_id', auth()->id())->exists()
-            : false;
+        if ($userId) {
+            $post->is_liked_by_auth_user = $post->likedBy()->where('user_id', $userId)->exists();
+        } else {
+            $post->is_liked_by_auth_user = false;
+        }
 
         return view('posts.show', compact('post'));
     }
 
-    /**
-     * Show the form for editing the post.
-     */
     public function edit(Post $post): View|RedirectResponse
     {
         $this->authorize('update', $post);
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::getCached();
 
         return view('posts.edit', compact('post', 'categories'));
     }
 
-    /**
-     * Update the specified post.
-     */
     public function update(UpdatePostRequest $request, Post $post): RedirectResponse
     {
         $post->update($request->validated());
@@ -95,9 +90,6 @@ class PostController extends Controller
         return redirect()->route('posts.show', $post)->with('status', 'Post updated successfully.');
     }
 
-    /**
-     * Remove the specified post.
-     */
     public function destroy(Post $post): RedirectResponse
     {
         $this->authorize('delete', $post);
