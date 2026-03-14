@@ -26,6 +26,10 @@
                     <i class="fas fa-file-alt w-5"></i>
                     <span>Posts</span>
                 </a>
+                <a href="{{ route('admin.comments.index') }}" class="flex items-center px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.comments.*') ? 'bg-gray-800 border-l-4 border-blue-500' : '' }}">
+                    <i class="fas fa-comments w-5"></i>
+                    <span>Comments</span>
+                </a>
                 <a href="{{ route('admin.categories.index') }}" class="flex items-center px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.categories.*') ? 'bg-gray-800 border-l-4 border-blue-500' : '' }}">
                     <i class="fas fa-folder w-5"></i>
                     <span>Categories</span>

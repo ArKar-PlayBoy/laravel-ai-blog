@@ -49,22 +49,30 @@ class PostController extends Controller
         Post::create([
             ...$request->validated(),
             'user_id' => $request->user()->id,
-            'status' => 'pending',
+            'status' => 'published',
         ]);
 
-        return redirect()->route('posts.index')->with('status', 'Post submitted successfully. It will be visible after approval.');
+        return redirect()->route('posts.index')->with('status', 'Post published successfully.');
     }
 
     public function show(Post $post): View
     {
-        if ($post->status !== 'published' && auth()->id() !== $post->user_id) {
+        if ($post->status !== 'published' && (!auth()->check() || auth()->id() !== $post->user_id)) {
             abort(404);
         }
 
         $userId = auth()->id();
         
-        $post->load(['user', 'category', 'comments.user'])
+        $commentsQuery = $post->comments()->with('user');
+        
+        if (!auth()->check() || (!auth()->user()->isAdmin() && auth()->id() !== $post->user_id)) {
+            $commentsQuery->where('status', '!=', 'archived');
+        }
+        
+        $post->load(['user', 'category'])
             ->loadCount('likedBy');
+        
+        $post->comments = $commentsQuery->get();
 
         if ($userId) {
             $post->is_liked_by_auth_user = $post->likedBy()->where('user_id', $userId)->exists();

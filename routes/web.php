@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AIController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CommentController;
@@ -30,10 +32,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('throttle:30,1');
     Route::patch('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::post('/comments/{comment}/flag', [CommentController::class, 'flag'])->name('comments.flag')->middleware('throttle:10,1');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // AI Routes - Rate limited to prevent abuse
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/status', [AIController::class, 'status'])->name('status');
+        Route::post('/generate', [AIController::class, 'generateContent'])->name('generate')->middleware('throttle:10,1');
+        Route::post('/titles', [AIController::class, 'generateTitles'])->name('titles')->middleware('throttle:20,1');
+        Route::post('/outline', [AIController::class, 'generateOutline'])->name('outline')->middleware('throttle:20,1');
+        Route::post('/improve', [AIController::class, 'improveWriting'])->name('improve')->middleware('throttle:15,1');
+        Route::post('/seo', [AIController::class, 'generateSEO'])->name('seo')->middleware('throttle:20,1');
+        Route::post('/moderate', [AIController::class, 'moderateContent'])->name('moderate')->middleware('throttle:30,1');
+        Route::post('/summarize', [AIController::class, 'summarize'])->name('summarize')->middleware('throttle:15,1');
+        Route::post('/hashtags', [AIController::class, 'generateHashtags'])->name('hashtags')->middleware('throttle:20,1');
+        Route::post('/tone', [AIController::class, 'changeTone'])->name('tone')->middleware('throttle:15,1');
+        Route::post('/expand', [AIController::class, 'expandContent'])->name('expand')->middleware('throttle:10,1');
+    });
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -57,6 +75,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('/posts/{post}/archive', [AdminPostController::class, 'archive'])->name('posts.archive');
     Route::delete('/posts/{post}', [AdminPostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/bulk-action', [AdminPostController::class, 'bulkAction'])->name('posts.bulk-action');
+
+    Route::get('/comments', [AdminCommentController::class, 'index'])->name('comments.index');
+    Route::post('/comments/{comment}/archive', [AdminCommentController::class, 'archive'])->name('comments.archive');
+    Route::post('/comments/{comment}/restore', [AdminCommentController::class, 'restore'])->name('comments.restore');
+    Route::delete('/comments/{comment}', [AdminCommentController::class, 'destroy'])->name('comments.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');

@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
         $user->load('roles.permissions');
         
-        $adminRoles = ['super_admin', 'admin', 'moderator', 'editor'];
+        $adminRoles = ['super_admin', 'admin'];
         $hasAdminRole = $user->roles()->whereIn('name', $adminRoles)->exists();
 
         if ($hasAdminRole) {
