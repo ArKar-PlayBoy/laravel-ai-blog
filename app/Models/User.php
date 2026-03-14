@@ -146,6 +146,6 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(['super_admin', 'admin', 'moderator', 'editor']);
+        return $this->hasAnyRole(['super_admin', 'admin']);
     }
 }

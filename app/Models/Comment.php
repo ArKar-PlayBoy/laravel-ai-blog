@@ -19,6 +19,15 @@ class Comment extends Model
         'content',
         'user_id',
         'post_id',
+        'status',
+        'flagged_by',
+        'flagged_at',
+        'flag_reason',
+    ];
+
+    protected $casts = [
+        'flagged_at' => 'datetime',
+        'status' => 'string',
     ];
 
     /**
@@ -35,5 +44,13 @@ class Comment extends Model
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
+    }
+
+    /**
+     * Get the user who flagged the comment.
+     */
+    public function flaggedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'flagged_by');
     }
 }

@@ -20,7 +20,7 @@ class PostPolicy
      */
     public function update(User $user, Post $post): bool
     {
-        if ($user->isAdmin()) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
         
@@ -32,7 +32,7 @@ class PostPolicy
      */
     public function delete(User $user, Post $post): bool
     {
-        if ($user->isAdmin()) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
         

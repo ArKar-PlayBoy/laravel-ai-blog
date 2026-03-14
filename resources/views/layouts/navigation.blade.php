@@ -22,9 +22,14 @@
                         {{ __('New Post') }}
                     </x-nav-link>
                     @php
-                        $adminRoles = ['super_admin', 'admin', 'moderator', 'editor'];
-                        $hasAdminRole = Auth::user()->roles()->whereIn('name', $adminRoles)->exists();
+                        $hasAdminRole = false;
                     @endphp
+                    @auth
+                        @php
+                            $adminRoles = ['super_admin', 'admin', 'moderator', 'editor'];
+                            $hasAdminRole = Auth::user()->roles()->whereIn('name', $adminRoles)->exists();
+                        @endphp
+                    @endauth
                     @if($hasAdminRole)
                     <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
                         {{ __('Admin') }}
@@ -36,10 +41,11 @@
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-2">
                 <x-dark-mode-toggle />
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                @auth
+                    <x-dropdown align="right" width="48">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                                <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -66,6 +72,12 @@
                         </form>
                     </x-slot>
                 </x-dropdown>
+            @else
+                <a href="{{ route('login') }}" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">{{ __('Log in') }}</a>
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="ms-4 inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:outline-none transition">{{ __('Register') }}</a>
+                @endif
+            @endauth
             </div>
 
             <!-- Hamburger -->

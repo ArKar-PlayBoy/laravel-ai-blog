@@ -38,23 +38,7 @@ class RolePermissionSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $moderator = Role::create([
-            'name' => 'moderator',
-            'display_name' => 'Moderator',
-            'description' => 'Content moderation access',
-            'is_active' => true,
-        ]);
-
-        $editor = Role::create([
-            'name' => 'editor',
-            'display_name' => 'Editor',
-            'description' => 'Content editing access',
-            'is_active' => true,
-        ]);
-
         $superAdmin->permissions()->attach(Permission::all()->pluck('id'));
         $admin->permissions()->attach(Permission::whereNotIn('name', ['view_audit_logs'])->pluck('id'));
-        $moderator->permissions()->attach(Permission::whereIn('name', ['access_admin_panel', 'manage_posts', 'approve_posts', 'manage_users'])->pluck('id'));
-        $editor->permissions()->attach(Permission::whereIn('name', ['access_admin_panel', 'manage_posts', 'manage_users'])->pluck('id'));
     }
 }

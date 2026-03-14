@@ -31,10 +31,8 @@ class BlogSeeder extends Seeder
         ]);
 
         // Assign roles to users
-        $adminRole = Role::where('name', 'admin')->first();
-        $editorRole = Role::where('name', 'editor')->first();
-        $moderatorRole = Role::where('name', 'moderator')->first();
-        $superAdminRole = Role::where('name', 'super_admin')->first();
+        $adminRole = Role::where('name', 'admin')->firstOrFail();
+        $superAdminRole = Role::where('name', 'super_admin')->firstOrFail();
 
         $alice->roles()->attach($superAdminRole->id);
         $bob->roles()->attach($adminRole->id);

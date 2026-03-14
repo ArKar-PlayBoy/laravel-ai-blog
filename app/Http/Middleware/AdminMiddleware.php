@@ -24,7 +24,7 @@ class AdminMiddleware
             return redirect()->route('login')->with('error', 'Your account has been banned.');
         }
 
-        $adminRoles = ['super_admin', 'admin', 'moderator', 'editor'];
+        $adminRoles = ['super_admin', 'admin'];
         $hasAdminRole = $this->userHasAdminRole($user, $adminRoles);
 
         if (! $hasAdminRole) {

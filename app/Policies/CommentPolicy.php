@@ -20,10 +20,6 @@ class CommentPolicy
      */
     public function update(User $user, Comment $comment): bool
     {
-        if ($user->isAdmin()) {
-            return true;
-        }
-        
         return $user->id === $comment->user_id;
     }
 
@@ -32,10 +28,22 @@ class CommentPolicy
      */
     public function delete(User $user, Comment $comment): bool
     {
-        if ($user->isAdmin()) {
+        if ($user->id === $comment->user_id) {
             return true;
         }
         
-        return $user->id === $comment->user_id;
+        if (!$comment->relationLoaded('post')) {
+            $comment->load('post');
+        }
+        
+        if ($user->id === $comment->post->user_id) {
+            return true;
+        }
+        
+        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+            return true;
+        }
+        
+        return false;
     }
 }

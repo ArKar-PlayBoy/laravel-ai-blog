@@ -13,10 +13,12 @@
         <div>
             @if($post->status == 'published')
                 <span class="px-3 py-1 rounded-full bg-green-100 text-green-800">Published</span>
+            @elseif($post->status == 'pending')
+                <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800">Pending</span>
             @elseif($post->status == 'draft')
                 <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-800">Draft</span>
             @else
-                <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800">Archived</span>
+                <span class="px-3 py-1 rounded-full bg-red-100 text-red-800">Archived</span>
             @endif
         </div>
     </div>
@@ -31,16 +33,17 @@
     
     <div class="mt-6 flex gap-2">
         <a href="{{ route('admin.posts.edit', $post) }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit</a>
-        @if($post->status != 'published')
+        @if($post->status === 'archived')
             <form method="POST" action="{{ route('admin.posts.approve', $post) }}">
                 @csrf
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Approve</button>
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Restore</button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('admin.posts.archive', $post) }}">
+                @csrf
+                <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Archive</button>
             </form>
         @endif
-        <form method="POST" action="{{ route('admin.posts.archive', $post) }}">
-            @csrf
-            <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Archive</button>
-        </form>
         <form method="POST" action="{{ route('admin.posts.destroy', $post) }}">
             @csrf
             @method('DELETE')

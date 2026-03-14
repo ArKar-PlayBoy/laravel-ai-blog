@@ -60,28 +60,87 @@
 
         <div class="mt-6 space-y-4">
             @foreach ($post->comments as $comment)
-                <div class="rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4">
+                @php
+                    $isAdmin    = auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'admin']);
+                    $isArchived = $comment->status === 'archived';
+                    $isFlagged  = $comment->status === 'flagged';
+                @endphp
+
+                @if ($isArchived && !$isAdmin)
+                    @continue
+                @endif
+
+                <div class="rounded-lg {{ $isArchived ? 'bg-gray-100 dark:bg-gray-900/50 border border-dashed border-gray-300 dark:border-gray-600 opacity-60' : ($isFlagged ? 'bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-700/40' : 'bg-gray-50 dark:bg-gray-800/50') }} p-4">
+                    {{-- Admin-only status action bar --}}
+                    @if ($isAdmin && $isArchived)
+                        <div class="mb-2 flex items-center gap-2">
+                            <span class="text-xs font-semibold text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">Archived</span>
+                            <form method="POST" action="{{ route('admin.comments.restore', $comment) }}" class="inline">
+                                @csrf
+                                <button type="submit" class="text-xs text-blue-600 hover:underline">Restore</button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.comments.destroy', $comment) }}" class="inline" onsubmit="return confirm('Permanently delete this comment?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+                            </form>
+                        </div>
+                    @elseif ($isAdmin && $isFlagged)
+                        <div class="mb-2 flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-semibold text-yellow-700 bg-yellow-100 dark:bg-yellow-800/40 px-2 py-0.5 rounded">⚑ Flagged — {{ $comment->flag_reason ?? 'no reason' }}</span>
+                            <form method="POST" action="{{ route('admin.comments.archive', $comment) }}" class="inline" onsubmit="return confirm('Archive this comment?');">
+                                @csrf
+                                <button type="submit" class="text-xs text-red-600 hover:underline">Archive</button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.comments.restore', $comment) }}" class="inline">
+                                @csrf
+                                <button type="submit" class="text-xs text-green-600 hover:underline">Clear Flag</button>
+                            </form>
+                        </div>
+                    @endif
+
                     <div class="flex justify-between items-start">
                         <div>
                             <p class="font-medium text-gray-900 dark:text-gray-100">{{ $comment->user->name }}</p>
                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ $comment->created_at->diffForHumans() }}</p>
                         </div>
                         @auth
-                            @if (auth()->user()->can('update', $comment))
-                                <div class="flex gap-3">
+                            <div class="flex items-center gap-3">
+                                @if (auth()->user()->can('update', $comment) && !$isArchived)
                                     <button type="button" onclick="document.getElementById('edit-comment-{{ $comment->id }}').classList.toggle('hidden')"
                                         class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Edit</button>
+                                @endif
+                                @if (auth()->user()->can('delete', $comment))
                                     <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="inline" onsubmit="return confirm('Delete this comment?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400">Delete</button>
                                     </form>
-                                </div>
-                            @endif
+                                @endif
+                                {{-- Only allow flagging published comments that you didn't write --}}
+                                @if ($comment->status === 'published' && $comment->user_id !== auth()->id())
+                                    <button type="button" onclick="document.getElementById('flag-form-{{ $comment->id }}').classList.toggle('hidden')" class="text-sm text-yellow-600 hover:text-yellow-800">Flag</button>
+                                    <form method="POST" action="{{ route('comments.flag', $comment) }}" id="flag-form-{{ $comment->id }}" class="hidden inline-flex items-center gap-2 mt-1" onsubmit="return confirm('Flag this comment?');">
+                                        @csrf
+                                        <select name="reason" required class="text-xs border rounded px-1 py-1">
+                                            <option value="">Select reason</option>
+                                            <option value="spam">Spam</option>
+                                            <option value="offensive">Offensive</option>
+                                            <option value="harassment">Harassment</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                        <button type="submit" class="text-sm text-yellow-600 hover:text-yellow-800">Submit</button>
+                                    </form>
+                                @endif
+                            </div>
                         @endauth
                     </div>
-                    <div id="comment-content-{{ $comment->id }}">
+                    <div id="comment-content-{{ $comment->id }}" class="{{ $isArchived ? 'opacity-60' : '' }}">
                         <p class="mt-2 text-gray-700 dark:text-gray-300">{!! nl2br(e($comment->content)) !!}</p>
+                        {{-- Public sees a simple "flagged" badge; admin sees reason + actions above --}}
+                        @if ($isFlagged && !$isAdmin)
+                            <span class="mt-2 inline-block text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">⚑ Flagged for review</span>
+                        @endif
                     </div>
                     <div id="edit-comment-{{ $comment->id }}" class="hidden mt-2">
                         <form method="POST" action="{{ route('comments.update', $comment) }}">

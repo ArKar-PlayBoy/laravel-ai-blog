@@ -22,7 +22,7 @@
 
         <div>
             <label for="body" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Body</label>
-            <textarea name="body" id="body" rows="8" required
+            <textarea name="body" id="body" rows="12" required
                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('body', $post->body) }}</textarea>
             @error('body')
                 <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -57,4 +57,6 @@
         </div>
     </form>
 </div>
+
+<x-ai-assist-panel />
 @endsection

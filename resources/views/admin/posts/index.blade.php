@@ -63,7 +63,7 @@
                             Published
                         </span>
                     @elseif($post->status == 'archived')
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                             Archived
                         </span>
                     @else
@@ -75,13 +75,12 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <a href="{{ route('admin.posts.show', $post) }}" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
                     <a href="{{ route('admin.posts.edit', $post) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                    @if($post->status == 'pending')
+                    @if($post->status === 'archived')
                         <form method="POST" action="{{ route('admin.posts.approve', $post) }}" class="inline">
                             @csrf
-                            <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
+                            <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Restore</button>
                         </form>
-                    @endif
-                    @if($post->status == 'published')
+                    @else
                         <form method="POST" action="{{ route('admin.posts.archive', $post) }}" class="inline">
                             @csrf
                             <button type="submit" class="text-yellow-600 hover:text-yellow-900 mr-3">Archive</button>
